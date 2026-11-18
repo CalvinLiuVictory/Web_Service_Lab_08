@@ -108,7 +108,7 @@ app.post('/products/:id/reserve', (req, res) => {
   
   const { qty } = req.body;
   if (!qty || qty < 1) return res.status(400).json({ error: 'qty tidak valid' });
-  if (p.stock < qty) return res.status(409).json({ error: 'Stok tidak cukup' }); // Dikembalikan ke 409
+  if (p.stock < qty) return res.status(400).json({ error: 'Stok tidak cukup' }); // Dikembalikan ke 409
   
   p.stock -= qty;
   res.json(p);

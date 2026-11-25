@@ -1,20 +1,13 @@
 {
   "name": "gateway",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "main": "gateway.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node gateway.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
-    "dotenv": "^18.0.8",
-    "express": "^5.3.0",
-    "express-rate-limit": "^8.7.1",
-    "http-proxy-middleware": "^4.2.0",
+    "express": "^4.21.2",
+    "http-proxy-middleware": "^3.0.3",
     "swagger-ui-express": "^5.0.1"
   }
 }

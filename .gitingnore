@@ -1,1 +1,8 @@
+if (Test-Path .gitingnore) { Remove-Item .gitingnore -Force }
+
+@'
+node_modules/
 .env
+npm-debug.log*
+.DS_Store
+'@ | Set-Content -Path ".gitignore" -Encoding Ascii

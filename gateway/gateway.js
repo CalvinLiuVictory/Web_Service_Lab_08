@@ -6,8 +6,17 @@ const crypto = require('crypto');
 const app = express();
 
 // ==========================================
+// KONFIGURASI ENVIRONMENT (LAB 13)
+// Default tetap ke localhost agar masih bisa jalan manual
+// ==========================================
+const PORT = process.env.PORT || 8080;
+const PRODUCT_SERVICE_URL = process.env.PRODUCT_SERVICE_URL || 'http://localhost:3000';
+const ORDER_SERVICE_URL   = process.env.ORDER_SERVICE_URL   || 'http://localhost:3001';
+const PRODUCT_DOC_URL     = process.env.PRODUCT_DOC_URL     || `${PRODUCT_SERVICE_URL}/openapi.json`;
+const ORDER_DOC_URL       = process.env.ORDER_DOC_URL       || `${ORDER_SERVICE_URL}/openapi.json`;
+
+// ==========================================
 // OBSERVABILITY & HEALTH CHECK (LAB 12)
-// Harus diletakkan sebelum middleware proxy
 // ==========================================
 app.use((req, res, next) => {
   req.headers['x-request-id'] = req.headers['x-request-id'] || crypto.randomUUID();
@@ -21,15 +30,15 @@ app.get('/health', (req, res) => res.json({ status: 'ok', service: 'gateway' }))
 // DOKUMENTASI API / SWAGGER (LAB 11)
 // ==========================================
 const DOC_SOURCES = [
-  { prefix: '/product-service', url: process.env.PRODUCT_DOC_URL || 'http://localhost:3000/openapi.json' },
-  { prefix: '/order-service',   url: process.env.ORDER_DOC_URL   || 'http://localhost:3001/openapi.json' },
+  { prefix: '/product-service', url: PRODUCT_DOC_URL },
+  { prefix: '/order-service',   url: ORDER_DOC_URL },
 ];
 
 async function buildSpec() {
   const merged = {
     openapi: '3.0.3',
     info: { title: 'Toko API (via Gateway)', version: '1.0.0' },
-    servers: [{ url: '/' }], 
+    servers: [{ url: '/' }],
     paths: {},
     components: { schemas: {} },
   };
@@ -49,21 +58,21 @@ async function buildSpec() {
 }
 
 app.get('/openapi.json', async (req, res) => res.json(await buildSpec()));
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(null, { 
-    swaggerOptions: { url: '/openapi.json' } 
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(null, {
+  swaggerOptions: { url: '/openapi.json' },
 }));
 
 // ==========================================
-// PROXY MIDDLEWARE (LAB 09)
+// PROXY MIDDLEWARE (LAB 09 & LAB 13)
 // ==========================================
 app.use('/product-service', createProxyMiddleware({
-  target: process.env.PRODUCT_SERVICE_URL || 'http://localhost:3000',
+  target: PRODUCT_SERVICE_URL,
   changeOrigin: true,
   pathRewrite: { '^/product-service': '' },
 }));
 
 app.use('/order-service', createProxyMiddleware({
-  target: process.env.ORDER_SERVICE_URL || 'http://localhost:3001',
+  target: ORDER_SERVICE_URL,
   changeOrigin: true,
   pathRewrite: { '^/order-service': '' },
 }));
@@ -71,8 +80,9 @@ app.use('/order-service', createProxyMiddleware({
 // ==========================================
 // SERVER START
 // ==========================================
-const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`🚀 Gateway berjalan di port :${PORT}`);
-  console.log(`📚 Dokumentasi API tersedia di http://localhost:${PORT}/docs`);
+  console.log(`🔗 Target Product Service : ${PRODUCT_SERVICE_URL}`);
+  console.log(`🔗 Target Order Service   : ${ORDER_SERVICE_URL}`);
+  console.log(`📚 Dokumentasi API        : http://localhost:${PORT}/docs`);
 });
